@@ -432,26 +432,30 @@ static CGPathRef CGPathCreateArc(CGPoint center, CGFloat radius, CGFloat startAn
     CALayer *parentLayer = [_pieView layer];
     NSArray *pieLayers = [parentLayer sublayers];
 
-    [pieLayers enumerateObjectsUsingBlock:^(CAShapeLayer * obj, NSUInteger idx, BOOL *stop) {
-        
-        NSNumber *presentationLayerStartAngle = [[obj presentationLayer] valueForKey:@"startAngle"];
-        CGFloat interpolatedStartAngle = [presentationLayerStartAngle doubleValue];
-        
-        NSNumber *presentationLayerEndAngle = [[obj presentationLayer] valueForKey:@"endAngle"];
-        CGFloat interpolatedEndAngle = [presentationLayerEndAngle doubleValue];
+    @try {
+        [pieLayers enumerateObjectsUsingBlock:^(CAShapeLayer *obj, NSUInteger idx, BOOL *stop) {
 
-        CGPathRef path = CGPathCreateArc(_pieCenter, _pieRadius, interpolatedStartAngle, interpolatedEndAngle);
-        [obj setPath:path];
-        CFRelease(path);
-        
-        {
-            CALayer *labelLayer = [[obj sublayers] objectAtIndex:0];
-            CGFloat interpolatedMidAngle = (interpolatedEndAngle + interpolatedStartAngle) / 2;        
-            [CATransaction setDisableActions:YES];
-            [labelLayer setPosition:CGPointMake(_pieCenter.x + (_labelRadius * cos(interpolatedMidAngle)), _pieCenter.y + (_labelRadius * sin(interpolatedMidAngle)))];
-            [CATransaction setDisableActions:NO];
-        }
-    }];
+            NSNumber *presentationLayerStartAngle = [[obj presentationLayer] valueForKey:@"startAngle"];
+            CGFloat interpolatedStartAngle = [presentationLayerStartAngle doubleValue];
+
+            NSNumber *presentationLayerEndAngle = [[obj presentationLayer] valueForKey:@"endAngle"];
+            CGFloat interpolatedEndAngle = [presentationLayerEndAngle doubleValue];
+
+            CGPathRef path = CGPathCreateArc(_pieCenter, _pieRadius, interpolatedStartAngle, interpolatedEndAngle);
+            [obj setPath:path];
+            CFRelease(path);
+
+            {
+                CALayer *labelLayer = [[obj sublayers] objectAtIndex:0];
+                CGFloat interpolatedMidAngle = (interpolatedEndAngle + interpolatedStartAngle) / 2;
+                [CATransaction setDisableActions:YES];
+                [labelLayer setPosition:CGPointMake(_pieCenter.x + (_labelRadius * cos(interpolatedMidAngle)), _pieCenter.y + (_labelRadius * sin(interpolatedMidAngle)))];
+                [CATransaction setDisableActions:NO];
+            }
+        }];
+    } @catch (NSException * exception) {
+         NSLog(@"xypiechart nan nan exception");
+    }
 }
 
 - (void)animationDidStart:(CAAnimation *)anim
